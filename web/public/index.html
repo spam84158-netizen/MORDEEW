@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>VØRAXIS MD — Connexion WhatsApp</title>
+<meta name="description" content="VØRAXIS MD — panneau de connexion WhatsApp par code de jumelage ou QR code.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#07060c;
+    --bg-2:#0b0a14;
+    --violet:#7c5cff;
+    --violet-soft:#9b82ff;
+    --cyan:#2be6c8;
+    --danger:#ff5470;
+    --amber:#ffb545;
+    --ink:#f3f1fb;
+    --ink-dim:#a29dc2;
+    --ink-faint:#6d6890;
+    --glass:rgba(255,255,255,.045);
+    --glass-strong:rgba(255,255,255,.075);
+    --line:rgba(255,255,255,.09);
+    --radius-lg:26px;
+    --radius-md:18px;
+    --radius-sm:12px;
+    --ff-display:'Space Grotesk',system-ui,sans-serif;
+    --ff-body:'Inter',system-ui,sans-serif;
+    --ff-mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:var(--ff-body);
+    color:var(--ink);
+    background:var(--bg);
+    overflow-x:hidden;
+  }
+  body::before{
+    content:'';
+    position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(60% 42% at 18% -6%, rgba(124,92,255,.28), transparent 60%),
+      radial-gradient(50% 40% at 100% 10%, rgba(43,230,200,.14), transparent 60%),
+      radial-gradient(80% 60% at 50% 120%, rgba(124,92,255,.10), transparent 60%),
+      var(--bg);
+  }
+  body::after{
+    content:'';
+    position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+    background-image:radial-gradient(rgba(255,255,255,.055) 1px, transparent 1px);
+    background-size:34px 34px;
+    mask-image:radial-gradient(60% 60% at 50% 20%, #000 0%, transparent 75%);
+  }
+  a{color:inherit}
+  button{font-family:inherit}
+  ::selection{background:var(--violet);color:#fff}
+  :focus-visible{outline:2px solid var(--violet-soft);outline-offset:3px;border-radius:6px}
+
+  .shell{position:relative;z-index:1;max-width:560px;margin:0 auto;padding:22px 20px 60px;min-height:100vh;display:flex;flex-direction:column}
+
+  /* ---------- top bar ---------- */
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:6px 2px 30px}
+  .mark{display:flex;align-items:center;gap:10px}
+  .mark-glyph{
+    width:34px;height:34px;border-radius:10px;flex:none;
+    background:conic-gradient(from 210deg,var(--violet),var(--cyan) 40%,var(--violet) 80%);
+    display:grid;place-items:center;box-shadow:0 0 0 1px rgba(255,255,255,.12) inset, 0 6px 18px -6px rgba(124,92,255,.7);
+  }
+  .mark-glyph span{font-family:var(--ff-display);font-weight:700;font-size:15px;color:#06050b}
+  .mark-name{font-family:var(--ff-display);font-weight:700;font-size:15px;letter-spacing:.02em}
+  .pulse-pill{
+    display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--ink-dim);
+    background:var(--glass);border:1px solid var(--line);padding:6px 11px 6px 9px;border-radius:100px;
+    font-family:var(--ff-mono);
+  }
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--ink-faint);flex:none}
+  .dot.on{background:var(--cyan);box-shadow:0 0 0 3px rgba(43,230,200,.18);animation:blink 2.4s ease-in-out infinite}
+  .dot.off{background:var(--danger);box-shadow:0 0 0 3px rgba(255,84,112,.18)}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.45}}
+
+  /* ---------- screens ---------- */
+  .screen{display:none;flex:1;flex-direction:column}
+  .screen.active{display:flex}
+  .fade-in{animation:fadeUp .5s cubic-bezier(.2,.7,.2,1) both}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  /* ---------- landing ---------- */
+  .hero{padding:18px 0 8px;text-align:left}
+  .core{
+    width:118px;height:118px;margin:6px 0 26px;position:relative;
+  }
+  .core svg{width:100%;height:100%;display:block}
+  .core .ring-outer{animation:spin 14s linear infinite;transform-origin:60px 60px}
+  .core .ring-inner{animation:spin 9s linear infinite reverse;transform-origin:60px 60px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){.core .ring-outer,.core .ring-inner{animation:none}}
+
+  .kicker{font-family:var(--ff-mono);font-size:12px;color:var(--cyan);letter-spacing:.02em;margin:0 0 14px}
+  h1.hero-title{font-family:var(--ff-display);font-weight:700;font-size:clamp(30px,7.5vw,42px);line-height:1.08;margin:0 0 16px;letter-spacing:-.01em}
+  h1.hero-title em{font-style:normal;color:var(--violet-soft)}
+  .hero-desc{font-size:15.5px;line-height:1.6;color:var(--ink-dim);max-width:46ch;margin:0 0 30px}
+
+  .cta-row{display:flex;flex-direction:column;gap:10px;margin-bottom:38px}
+  .btn{
+    appearance:none;border:0;cursor:pointer;border-radius:14px;
+    font-family:var(--ff-display);font-weight:600;font-size:15px;
+    padding:16px 20px;display:flex;align-items:center;justify-content:center;gap:9px;
+    transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+  .btn:active{transform:scale(.98)}
+  .btn-primary{background:linear-gradient(135deg,var(--violet),#9b6bff);color:#fff;box-shadow:0 14px 30px -12px rgba(124,92,255,.65)}
+  .btn-primary:hover{box-shadow:0 18px 36px -12px rgba(124,92,255,.8)}
+  .btn-ghost{background:var(--glass);border:1px solid var(--line);color:var(--ink)}
+  .btn-ghost:hover{background:var(--glass-strong)}
+  .btn-danger-ghost{background:rgba(255,84,112,.08);border:1px solid rgba(255,84,112,.35);color:#ffb3c0}
+  .btn[disabled]{opacity:.55;cursor:not-allowed;transform:none}
+  .btn-sm{padding:11px 16px;font-size:13.5px;border-radius:12px}
+  .btn-block{width:100%}
+
+  .method-explain{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px}
+  @media (max-width:420px){.method-explain{grid-template-columns:1fr}}
+  .explain-card{background:var(--glass);border:1px solid var(--line);border-radius:var(--radius-md);padding:16px}
+  .explain-card .icon{width:30px;height:30px;margin-bottom:12px;color:var(--violet-soft)}
+  .explain-card h3{font-family:var(--ff-display);font-size:14.5px;margin:0 0 6px}
+  .explain-card p{font-size:12.5px;line-height:1.55;color:var(--ink-dim);margin:0}
+
+  .foot-note{font-size:11.5px;color:var(--ink-faint);line-height:1.6;margin-top:auto;padding-top:34px}
+
+  /* ---------- connect screen ---------- */
+  .panel{background:var(--glass);border:1px solid var(--line);border-radius:var(--radius-lg);padding:22px;backdrop-filter:blur(20px)}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+  .back-btn{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-dim);background:none;border:0;cursor:pointer;padding:4px 0}
+  .panel-title{font-family:var(--ff-display);font-weight:600;font-size:17px;margin:0}
+
+  .seg{display:flex;background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:100px;padding:4px;margin-bottom:20px}
+  .seg button{flex:1;border:0;background:transparent;padding:10px 8px;border-radius:100px;font-size:13.5px;font-weight:600;color:var(--ink-dim);cursor:pointer;font-family:var(--ff-display);transition:background .2s,color .2s}
+  .seg button.active{background:var(--violet);color:#fff}
+
+  .field{margin-bottom:16px}
+  .field label{display:block;font-size:11.5px;font-family:var(--ff-mono);color:var(--ink-faint);letter-spacing:.03em;margin-bottom:8px}
+  .field input{
+    width:100%;padding:15px 16px;border-radius:14px;border:1px solid var(--line);
+    background:#0b0a14;color:var(--ink);font-size:16px;outline:none;font-family:var(--ff-body);
+    transition:border-color .2s;
+  }
+  .field input:focus{border-color:var(--violet-soft)}
+  .field-hint{font-size:11.5px;color:var(--ink-faint);margin-top:8px;line-height:1.5}
+
+  .state-stage{margin-top:8px;min-height:0}
+  .stage-idle{display:none}
+
+  .status-line{display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--ink-dim);padding:14px 2px 2px}
+  .spinner{width:15px;height:15px;border-radius:50%;border:2px solid rgba(255,255,255,.18);border-top-color:var(--violet-soft);animation:spin .8s linear infinite;flex:none}
+  .status-line.ok{color:var(--cyan)}
+  .status-line.err{color:var(--danger)}
+
+  .code-display{
+    text-align:center;padding:26px 14px;margin-top:16px;border-radius:18px;
+    background:linear-gradient(180deg,rgba(124,92,255,.14),rgba(124,92,255,.04));
+    border:1px solid rgba(124,92,255,.3);
+  }
+  .code-display .code{font-family:var(--ff-mono);font-size:clamp(26px,7vw,34px);letter-spacing:.22em;font-weight:500;color:#fff}
+  .code-display .code-label{font-size:11px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px;font-family:var(--ff-mono)}
+  .copy-row{display:flex;justify-content:center;margin-top:16px}
+
+  .qr-display{display:flex;justify-content:center;padding:20px;margin-top:16px;background:#fff;border-radius:18px}
+  #qr-canvas-wrap{width:196px;height:196px;display:flex;align-items:center;justify-content:center}
+
+  .steps-mini{display:flex;flex-direction:column;gap:10px;margin-top:18px;font-size:12.5px;color:var(--ink-dim)}
+  .steps-mini div{display:flex;gap:9px;align-items:flex-start}
+  .steps-mini div::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--violet-soft);margin-top:7px;flex:none}
+
+  .error-box{background:rgba(255,84,112,.08);border:1px solid rgba(255,84,112,.3);border-radius:14px;padding:14px 16px;font-size:13px;color:#ffc4cf;margin-top:16px;line-height:1.5}
+
+  /* ---------- dashboard ---------- */
+  .db-header{text-align:center;padding:10px 0 26px}
+  .db-badge{
+    display:inline-flex;align-items:center;gap:8px;background:rgba(43,230,200,.1);
+    border:1px solid rgba(43,230,200,.35);color:var(--cyan);padding:8px 16px;border-radius:100px;
+    font-family:var(--ff-mono);font-size:12px;margin-bottom:18px;
+  }
+  .db-number{font-family:var(--ff-display);font-size:26px;font-weight:700;letter-spacing:.01em}
+  .db-sub{font-size:12.5px;color:var(--ink-faint);margin-top:4px;font-family:var(--ff-mono)}
+
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px}
+  .stat-card{background:var(--glass);border:1px solid var(--line);border-radius:16px;padding:16px}
+  .stat-card .n{font-family:var(--ff-display);font-size:21px;font-weight:700}
+  .stat-card .l{font-size:11px;color:var(--ink-faint);margin-top:4px;font-family:var(--ff-mono);letter-spacing:.02em}
+
+  .action-list{display:flex;flex-direction:column;gap:10px}
+
+  .config-drawer{margin-top:14px;background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:14px;padding:16px;font-size:12.5px;color:var(--ink-dim);display:none}
+  .config-drawer.open{display:block}
+  .config-drawer dl{display:grid;grid-template-columns:auto 1fr;gap:8px 14px;margin:0}
+  .config-drawer dt{color:var(--ink-faint);font-family:var(--ff-mono)}
+  .config-drawer dd{margin:0;text-align:right;color:var(--ink)}
+
+  .hidden{display:none !important}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="topbar">
+    <div class="mark">
+      <div class="mark-glyph"><span>V</span></div>
+      <div class="mark-name">VØRAXIS MD</div>
+    </div>
+    <div class="pulse-pill" id="service-pill"><span class="dot" id="service-dot"></span><span id="service-text">Vérification…</span></div>
+  </div>
+
+  <!-- ============ LANDING ============ -->
+  <section class="screen active" id="screen-landing">
+    <div class="hero fade-in">
+      <div class="core" aria-hidden="true">
+        <svg viewBox="0 0 120 120">
+          <circle class="ring-outer" cx="60" cy="60" r="52" fill="none" stroke="url(#g1)" stroke-width="2" stroke-dasharray="8 10" stroke-linecap="round"/>
+          <circle class="ring-inner" cx="60" cy="60" r="38" fill="none" stroke="url(#g2)" stroke-width="2.5" stroke-dasharray="4 120"/>
+          <circle cx="60" cy="60" r="22" fill="url(#g3)" opacity=".9"/>
+          <defs>
+            <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#2be6c8"/></linearGradient>
+            <linearGradient id="g2" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#2be6c8"/><stop offset="1" stop-color="#7c5cff"/></linearGradient>
+            <radialGradient id="g3"><stop offset="0" stop-color="#a58bff"/><stop offset="1" stop-color="#7c5cff" stop-opacity=".15"/></radialGradient>
+          </defs>
+        </svg>
+      </div>
+      <p class="kicker">PANNEAU DE CONNEXION WHATSAPP</p>
+      <h1 class="hero-title">Relie ton numéro à <em>VØRAXIS MD</em> en toute sécurité.</h1>
+      <p class="hero-desc">Un pont direct et chiffré entre ton WhatsApp et le moteur VØRAXIS MD — sans mot de passe, sans installation, via le protocole officiel Baileys.</p>
+      <div class="cta-row">
+        <button class="btn btn-primary btn-block" id="go-connect">Connecter WhatsApp</button>
+      </div>
+    </div>
+
+    <div class="method-explain fade-in" style="animation-delay:.08s">
+      <div class="explain-card">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3h-3zM19 14h2v2h-2zM14 19h2v2h-2zM19 19h2v2h-2z"/></svg>
+        <h3>QR Code</h3>
+        <p>Scanne un code depuis WhatsApp → Appareils liés. Idéal si tu as ton téléphone sous la main.</p>
+      </div>
+      <div class="explain-card">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="6" width="20" height="12" rx="2.5"/><path d="M6 12h.01M10 12h.01M14 12h.01M18 12h.01"/></svg>
+        <h3>Code de jumelage</h3>
+        <p>Reçois un code à 8 caractères généré par WhatsApp à saisir manuellement. Pratique sans appareil photo.</p>
+      </div>
+    </div>
+
+    <p class="foot-note">Le code ou le QR affiché provient directement de la session Baileys en cours — rien n'est simulé. Ta session reste privée et n'est jamais partagée.</p>
+  </section>
+
+  <!-- ============ CONNECT ============ -->
+  <section class="screen" id="screen-connect">
+    <div class="panel fade-in">
+      <div class="panel-head">
+        <button class="back-btn" id="back-to-landing">← Retour</button>
+        <p class="panel-title">Connexion</p>
+        <span style="width:52px"></span>
+      </div>
+
+      <div class="seg" role="tablist">
+        <button class="active" id="tab-code" role="tab">Code de jumelage</button>
+        <button id="tab-qr" role="tab">QR Code</button>
+      </div>
+
+      <div id="pane-code">
+        <div class="field">
+          <label for="number">Numéro WhatsApp (avec indicatif pays)</label>
+          <input id="number" type="tel" inputmode="numeric" autocomplete="tel" placeholder="ex. 33xxx">
+          <div class="field-hint">Format international sans « + » ni espaces.</div>
+        </div>
+        <button class="btn btn-primary btn-block" id="submit-code">Générer le code</button>
+      </div>
+
+      <div id="pane-qr" class="hidden">
+        <p class="field-hint" style="margin-bottom:16px">Génère un QR code et scanne-le depuis WhatsApp → Paramètres → Appareils liés → Lier un appareil.</p>
+        <button class="btn btn-primary btn-block" id="submit-qr">Générer le QR</button>
+      </div>
+
+      <div class="state-stage" id="stage">
+        <div class="status-line hidden" id="status-line">
+          <span class="spinner" id="status-spinner"></span>
+          <span id="status-text">Prêt.</span>
+        </div>
+
+        <div class="code-display hidden" id="code-box">
+          <div class="code-label">Code de jumelage</div>
+          <div class="code" id="code-value">— — — — — — — —</div>
+          <div class="copy-row"><button class="btn btn-ghost btn-sm" id="copy-code">Copier le code</button></div>
+        </div>
+
+        <div class="qr-display hidden" id="qr-box"><div id="qr-canvas-wrap"></div></div>
+
+        <div class="steps-mini hidden" id="steps-code">
+          <div>Ouvre WhatsApp sur ton téléphone</div>
+          <div>Paramètres → Appareils liés → Lier un appareil</div>
+          <div>Choisis « Lier avec un numéro de téléphone » et saisis ce code</div>
+        </div>
+        <div class="steps-mini hidden" id="steps-qr">
+          <div>Ouvre WhatsApp sur ton téléphone</div>
+          <div>Paramètres → Appareils liés → Lier un appareil</div>
+          <div>Scanne le QR code affiché ci-dessus</div>
+        </div>
+
+        <div class="error-box hidden" id="error-box"></div>
+        <button class="btn btn-ghost btn-block hidden" id="retry-btn" style="margin-top:14px">Réessayer</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DASHBOARD ============ -->
+  <section class="screen" id="screen-dashboard">
+    <div class="fade-in">
+      <div class="db-header">
+        <div class="db-badge"><span class="dot on"></span> Connecté</div>
+        <div class="db-number" id="db-number">—</div>
+        <div class="db-sub" id="db-duration">durée de connexion : 0s</div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="n" id="db-status">Actif</div>
+          <div class="l">ÉTAT DE LA SESSION</div>
+        </div>
+        <div class="stat-card">
+          <div class="n" id="db-commands">—</div>
+          <div class="l">COMMANDES DISPONIBLES</div>
+        </div>
+      </div>
+
+      <div class="action-list">
+        <button class="btn btn-ghost btn-block" id="toggle-config">Configuration</button>
+        <div class="config-drawer" id="config-drawer">
+          <dl>
+            <dt>Service</dt><dd id="cfg-name">VØRAXIS MD</dd>
+            <dt>ID session</dt><dd id="cfg-session">—</dd>
+            <dt>Sessions actives</dt><dd id="cfg-active">—</dd>
+          </dl>
+        </div>
+        <button class="btn btn-ghost btn-block" id="refresh-status">Actualiser le statut</button>
+        <button class="btn btn-danger-ghost btn-block" id="logout-btn">Déconnecter la session</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  const $ = (id) => document.getElementById(id);
+  const screens = { landing: $('screen-landing'), connect: $('screen-connect'), dashboard: $('screen-dashboard') };
+
+  let currentSessionId = null;
+  let currentMethod = 'code';
+  let pollTimer = null;
+  let durationTimer = null;
+  let qrRenderer = null;
+  let lastQrValue = null;
+
+  function showScreen(name){
+    Object.values(screens).forEach(s => s.classList.remove('active'));
+    screens[name].classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /* ---------- service health indicator ---------- */
+  async function checkHealth(){
+    try{
+      const r = await fetch('/api/health');
+      const d = await r.json();
+      $('service-dot').className = 'dot on';
+      $('service-text').textContent = 'Service en ligne';
+      return d;
+    }catch(e){
+      $('service-dot').className = 'dot off';
+      $('service-text').textContent = 'Service hors ligne';
+      return null;
+    }
+  }
+  checkHealth();
+  setInterval(checkHealth, 15000);
+
+  /* ---------- navigation ---------- */
+  $('go-connect').addEventListener('click', () => showScreen('connect'));
+  $('back-to-landing').addEventListener('click', () => { stopPolling(); showScreen('landing'); });
+
+  /* ---------- tabs ---------- */
+  function setMethod(method){
+    currentMethod = method;
+    $('tab-code').classList.toggle('active', method === 'code');
+    $('tab-qr').classList.toggle('active', method === 'qr');
+    $('pane-code').classList.toggle('hidden', method !== 'code');
+    $('pane-qr').classList.toggle('hidden', method !== 'qr');
+    resetStage();
+  }
+  $('tab-code').addEventListener('click', () => setMethod('code'));
+  $('tab-qr').addEventListener('click', () => setMethod('qr'));
+
+  /* ---------- stage helpers ---------- */
+  function resetStage(){
+    stopPolling();
+    lastQrValue = null;
+    $('status-line').classList.add('hidden');
+    $('status-line').classList.remove('ok', 'err');
+    $('code-box').classList.add('hidden');
+    $('qr-box').classList.add('hidden');
+    $('steps-code').classList.add('hidden');
+    $('steps-qr').classList.add('hidden');
+    $('error-box').classList.add('hidden');
+    $('retry-btn').classList.add('hidden');
+    $('submit-code').disabled = false;
+    $('submit-qr').disabled = false;
+  }
+
+  function setStatusLine(text, kind){
+    const line = $('status-line');
+    line.classList.remove('hidden', 'ok', 'err');
+    if (kind) line.classList.add(kind);
+    $('status-spinner').style.display = (kind === 'ok' || kind === 'err') ? 'none' : 'inline-block';
+    $('status-text').textContent = text;
+  }
+
+  function showError(message){
+    stopPolling();
+    $('error-box').textContent = message;
+    $('error-box').classList.remove('hidden');
+    $('retry-btn').classList.remove('hidden');
+    $('submit-code').disabled = false;
+    $('submit-qr').disabled = false;
+    setStatusLine('Erreur', 'err');
+  }
+
+  $('retry-btn').addEventListener('click', resetStage);
+
+  /* ---------- pairing code flow ---------- */
+  $('submit-code').addEventListener('click', async () => {
+    const number = $('number').value.replace(/\D/g, '');
+    if (number.length < 8){ showError('Numéro WhatsApp invalide.'); return; }
+    resetStage();
+    $('submit-code').disabled = true;
+    setStatusLine('Génération du code…');
+    try{
+      const r = await fetch('/api/session', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ method: 'code', number })
+      });
+      const d = await r.json();
+      if (!d.ok) throw new Error(d.error || 'Impossible de générer le code.');
+      currentSessionId = d.sessionId;
+      renderCode(d.pairingCode);
+      poll();
+    }catch(e){ showError(e.message); }
+  });
+
+  function renderCode(code){
+    $('code-value').textContent = code ? code.toUpperCase() : '—';
+    $('code-box').classList.remove('hidden');
+    $('steps-code').classList.remove('hidden');
+    setStatusLine('Code généré. En attente de liaison…');
+  }
+
+  $('copy-code').addEventListener('click', async () => {
+    const text = $('code-value').textContent;
+    try{ await navigator.clipboard.writeText(text); $('copy-code').textContent = 'Copié !'; setTimeout(() => $('copy-code').textContent = 'Copier le code', 1600); }
+    catch(e){ /* clipboard unsupported */ }
+  });
+
+  /* ---------- QR flow ---------- */
+  $('submit-qr').addEventListener('click', async () => {
+    resetStage();
+    $('submit-qr').disabled = true;
+    setStatusLine('Génération du QR code…');
+    try{
+      const r = await fetch('/api/session', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ method: 'qr' })
+      });
+      const d = await r.json();
+      if (!d.ok) throw new Error(d.error || 'Impossible de démarrer la session.');
+      currentSessionId = d.sessionId;
+      setStatusLine('Génération du QR code…');
+      poll();
+    }catch(e){ showError(e.message); }
+  });
+
+  function renderQr(data){
+    $('qr-box').classList.remove('hidden');
+    $('steps-qr').classList.remove('hidden');
+    const wrap = $('qr-canvas-wrap');
+    wrap.innerHTML = '';
+    if (window.QRCode){
+      qrRenderer = new QRCode(wrap, { text: data, width: 196, height: 196, colorDark: '#0b0a14', colorLight: '#ffffff' });
+    } else {
+      wrap.textContent = data;
+    }
+    setStatusLine('QR code prêt. En attente de liaison…');
+  }
+
+  /* ---------- polling ---------- */
+  function stopPolling(){
+    if (pollTimer){ clearTimeout(pollTimer); pollTimer = null; }
+  }
+
+  async function poll(){
+    if (!currentSessionId) return;
+    try{
+      const r = await fetch('/api/session/' + currentSessionId);
+      const d = await r.json();
+      if (!d.ok){ showError(d.error || 'Session introuvable.'); return; }
+
+      if (d.status === 'qr_ready' && d.qr && d.qr !== lastQrValue){
+        lastQrValue = d.qr;
+        renderQr(d.qr);
+      }
+
+      if (d.status === 'connecting'){
+        setStatusLine('Connexion en cours…');
+      } else if (d.status === 'waiting' || d.status === 'code_ready'){
+        setStatusLine(currentMethod === 'qr' ? 'Génération du QR code…' : 'En attente de liaison…');
+      } else if (d.status === 'connected'){
+        setStatusLine('Connecté.', 'ok');
+        openDashboard(d);
+        return;
+      } else if (d.status === 'disconnected'){
+        showError(d.error || 'La connexion a été interrompue.');
+        return;
+      }
+
+      pollTimer = setTimeout(poll, 2200);
+    }catch(e){
+      pollTimer = setTimeout(poll, 3500);
+    }
+  }
+
+  /* ---------- dashboard ---------- */
+  let connectedAt = null;
+
+  function openDashboard(d){
+    stopPolling();
+    connectedAt = d.connectedAt || Date.now();
+    $('db-number').textContent = d.phoneNumber ? '+' + d.phoneNumber : (d.number ? '+' + d.number : 'Numéro masqué');
+    $('db-commands').textContent = d.pluginsCount != null ? d.pluginsCount : '—';
+    $('cfg-session').textContent = d.sessionId.slice(0, 8) + '…';
+    showScreen('dashboard');
+    tickDuration();
+    if (durationTimer) clearInterval(durationTimer);
+    durationTimer = setInterval(tickDuration, 1000);
+  }
+
+  function tickDuration(){
+    if (!connectedAt) return;
+    const secs = Math.max(0, Math.floor((Date.now() - connectedAt) / 1000));
+    const h = String(Math.floor(secs / 3600)).padStart(2, '0');
+    const m = String(Math.floor((secs % 3600) / 60)).padStart(2, '0');
+    const s = String(secs % 60).padStart(2, '0');
+    $('db-duration').textContent = 'durée de connexion : ' + h + ':' + m + ':' + s;
+  }
+
+  $('toggle-config').addEventListener('click', async () => {
+    const drawer = $('config-drawer');
+    drawer.classList.toggle('open');
+    if (drawer.classList.contains('open')){
+      const health = await checkHealth();
+      if (health){
+        $('cfg-name').textContent = health.name || 'VØRAXIS MD';
+        $('cfg-active').textContent = health.activeSessions != null ? health.activeSessions : '—';
+      }
+    }
+  });
+
+  $('refresh-status').addEventListener('click', async () => {
+    if (!currentSessionId) return;
+    $('refresh-status').disabled = true;
+    try{
+      const r = await fetch('/api/session/' + currentSessionId);
+      const d = await r.json();
+      if (d.ok && d.status === 'connected'){ openDashboard(d); }
+      else if (d.ok && d.status === 'disconnected'){
+        stopScreenToConnect(d.error || 'Session déconnectée.');
+      }
+    } finally { $('refresh-status').disabled = false; }
+  });
+
+  function stopScreenToConnect(message){
+    if (durationTimer) clearInterval(durationTimer);
+    currentSessionId = null;
+    showScreen('connect');
+    resetStage();
+    showError(message);
+  }
+
+  $('logout-btn').addEventListener('click', async () => {
+    if (!currentSessionId) return;
+    $('logout-btn').disabled = true;
+    $('logout-btn').textContent = 'Déconnexion…';
+    try{
+      await fetch('/api/session/' + currentSessionId + '/logout', { method: 'POST' });
+    } finally {
+      if (durationTimer) clearInterval(durationTimer);
+      currentSessionId = null;
+      $('logout-btn').disabled = false;
+      $('logout-btn').textContent = 'Déconnecter la session';
+      resetStage();
+      showScreen('landing');
+    }
+  });
+
+})();
+</script>
+</body>
+</html>
